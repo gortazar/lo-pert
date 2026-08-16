@@ -23,12 +23,14 @@
         oxt = pkgs.runCommand "lo-pert-${version}.oxt"
           {
             src = ./.;
-            nativeBuildInputs = [ pkgs.zip pkgs.unzip pkgs.python3 ];
+            nativeBuildInputs = [ pkgs.bash pkgs.zip pkgs.unzip pkgs.python3 ];
           } ''
           cp -r "$src" ./source
           chmod -R u+w ./source
           cd ./source
-          ./build.sh "$PWD/dist"
+          # `bash ./build.sh`, not `./build.sh`: the build sandbox has no
+          # /usr/bin/env for the shebang to resolve.
+          bash ./build.sh "$PWD/dist"
           mkdir -p "$out"
           cp dist/lo-pert-${version}.oxt "$out/"
         '';
