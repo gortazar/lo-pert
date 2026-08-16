@@ -1,6 +1,9 @@
 """What each menu entry does. Called from lopert_handler.LoPertHandler.dispatch."""
 
-from lopert import dialogs
+from lopert import dialogs, documents, drawing
+from lopert.diagram import diagram_from_rows
+from lopert.layout import fit_scale
+from lopert.table import TableValidationError
 
 VERSION = "0.1"
 
@@ -43,15 +46,117 @@ def about(ctx, frame):
 
 
 def generate_diagram(ctx, frame):
-    raise CommandError("lo-pert", "not implemented yet")
+    """Read the selected precedence table and draw its network."""
+
+    try:
+        spreadsheet = documents.find_spreadsheet(ctx, frame)
+        rows = documents.selected_cells(spreadsheet)
+    except documents.NoTableError as error:
+        raise CommandError("lo-pert — no precedence table", str(error)) from error
+
+    try:
+        diagram = diagram_from_rows(rows)
+    except TableValidationError as error:
+        raise CommandError(
+            "lo-pert — the precedence table has errors",
+            "Nothing was drawn. Fix these and run the command again:\n\n"
+            + "\n".join(str(problem) for problem in error.errors),
+        ) from error
+
+    document = documents.drawing_document(ctx, frame)
+    page = documents.target_page(document)
+    width, height = documents.page_size(page)
+    scale = fit_scale(diagram.width, diagram.height, width, height)
+    offset = (
+        (width - diagram.width * scale) / 2,
+        (height - diagram.height * scale) / 2,
+    )
+
+    drawing.draw_diagram(ctx, document, page, diagram, scale=scale, offset=offset)
+    _bring_to_front(document, page)
+
+
+def _bring_to_front(document, page):
+    """Show the page that was just drawn on, if its window is around."""
+    try:
+        controller = document.getCurrentController()
+        controller.setCurrentPage(page)
+        controller.getFrame().getContainerWindow().toFront()
+    except Exception:  # noqa: BLE001 - headless, or no window: nothing to raise about
+        pass
+
+
+def _drawing_target(ctx, frame):
+    document = documents.current_document(ctx, frame)
+    if not (
+        document.supportsService(documents.DRAW)
+        or document.supportsService(documents.IMPRESS)
+    ):
+        raise CommandError(
+            "lo-pert",
+            "This command draws on a page, so run it from a Draw or Impress "
+            "document.",
+        )
+    page = document.getCurrentController().getCurrentPage()
+    return document, page
+
+
+def _next_event_number(page):
+    numbers = [0]
+    for index in range(page.getCount()):
+        name = page.getByIndex(index).Name
+        if name.startswith(drawing.EVENT_PREFIX):
+            suffix = name[len(drawing.EVENT_PREFIX) :]
+            if suffix.isdigit():
+                numbers.append(int(suffix))
+    return max(numbers) + 1
 
 
 def insert_state(ctx, frame):
-    raise CommandError("lo-pert", "not implemented yet")
+    """Insert one state circle in the middle of the page, ready to be edited."""
+
+    document, page = _drawing_target(ctx, frame)
+    number = _next_event_number(page)
+    drawing.draw_state(
+        ctx,
+        document,
+        page,
+        (page.Width / 2, page.Height / 2),
+        ("0", "0", str(number)),
+        number=number,
+    )
 
 
 def insert_action(ctx, frame):
-    raise CommandError("lo-pert", "not implemented yet")
+    """Join the two selected states with a labelled arrow."""
+
+    document, page = _drawing_target(ctx, frame)
+    selection = document.getCurrentController().getSelection()
+    shapes = (
+        [selection.getByIndex(index) for index in range(selection.getCount())]
+        if selection is not None and hasattr(selection, "getCount")
+        else []
+    )
+    states = [shape for shape in shapes if shape.Name.startswith(drawing.EVENT_PREFIX)]
+    if len(states) != 2:
+        raise CommandError(
+            "lo-pert",
+            "Select exactly two states — the one the action starts at and the one "
+            "it ends at — then run this command.",
+        )
+
+    # The arrow runs left to right, whichever order they were selected in.
+    states.sort(key=lambda shape: shape.getPosition().X)
+    start, end = states
+    drawing.draw_action(
+        ctx,
+        document,
+        page,
+        start,
+        end,
+        label="A(1)",
+        name=f"{drawing.ACTIVITY_PREFIX}{start.Name}-{end.Name}",
+    )
 
 
 COMMANDS = {

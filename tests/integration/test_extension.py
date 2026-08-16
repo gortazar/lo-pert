@@ -30,10 +30,14 @@ def test_about_reports_the_version(office, draw_document):
     assert "lo-pert 0.1" in message
 
 
-def test_an_unimplemented_command_says_so_rather_than_failing_silently(
+def test_an_unexpected_failure_becomes_a_dialog_rather_than_silence(
     office, draw_document
 ):
-    office.dispatch(draw_document, "InsertState")
+    # There is no such command, so this takes the handler's last-resort path: a
+    # dialog carrying the traceback, instead of an exception nobody ever sees.
+    office.dispatch(draw_document, "NoSuchCommand")
 
-    kinds = [dialog[0] for dialog in office.dialogs()]
-    assert kinds == ["errorbox"]
+    dialogs = office.dialogs()
+    assert [dialog[0] for dialog in dialogs] == ["errorbox"]
+    assert dialogs[0][1] == "lo-pert failed"
+    assert "NoSuchCommand" in dialogs[0][2]

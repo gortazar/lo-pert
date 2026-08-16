@@ -180,3 +180,15 @@ def test_diagram_from_rows_rejects_a_bad_table():
 
     with pytest.raises(TableValidationError):
         diagram_from_rows([["A", "1", "Z"]])
+
+
+def test_fit_scale_shrinks_a_diagram_that_is_too_wide():
+    from lopert.layout import fit_scale
+
+    assert fit_scale(60000, 10000, 29700, 21000, margin=1000) < 1.0
+
+
+def test_fit_scale_never_enlarges_a_small_diagram():
+    from lopert.layout import fit_scale
+
+    assert fit_scale(5000, 5000, 29700, 21000) == 1.0

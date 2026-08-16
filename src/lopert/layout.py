@@ -126,6 +126,21 @@ def layout(network: Network, style: Style | None = None) -> Layout:
     )
 
 
+def fit_scale(
+    width: int, height: int, page_width: int, page_height: int, margin: int = 1000
+) -> float:
+    """How much to shrink a diagram so it fits a page. Never enlarges it.
+
+    A big network on a small page is the normal case — an A4 landscape slide holds
+    perhaps six columns at full size — and shrinking keeps everything visible where
+    clipping would silently lose the end of the project.
+    """
+
+    usable_width = max(page_width - 2 * margin, 1)
+    usable_height = max(page_height - 2 * margin, 1)
+    return min(1.0, usable_width / max(width, 1), usable_height / max(height, 1))
+
+
 def renumber_by_layout(
     network: Network, placement: Layout
 ) -> tuple[Network, Layout]:
