@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest:manifest xmlns:manifest="http://openoffice.org/2001/manifest">
+  <!-- The Python component. Its pythonpath/ sibling directory is added to sys.path
+       by LibreOffice's own python loader, which is how the lopert package inside the
+       extension becomes importable. -->
+  <manifest:file-entry
+      manifest:media-type="application/vnd.sun.star.uno-component;type=Python"
+      manifest:full-path="lopert_handler.py"/>
+  <!-- Menus and toolbar. -->
+  <manifest:file-entry
+      manifest:media-type="application/vnd.sun.star.configuration-data"
+      manifest:full-path="Addons.xcu"/>
+  <!-- Binds the vnd.gortazar.lopert: URLs those menu entries dispatch to the
+       component above; without this entry the menu appears and does nothing. -->
+  <manifest:file-entry
+      manifest:media-type="application/vnd.sun.star.configuration-data"
+      manifest:full-path="ProtocolHandler.xcu"/>
+</manifest:manifest>

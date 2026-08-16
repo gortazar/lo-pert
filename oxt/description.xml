@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- @VERSION@ is filled in by build.sh from the VERSION file, so the extension
+     manager and the release tag can never disagree. -->
+<description xmlns="http://openoffice.org/extensions/description/2006"
+             xmlns:d="http://openoffice.org/extensions/description/2006"
+             xmlns:lo="http://libreoffice.org/extensions/description/2011"
+             xmlns:xlink="http://www.w3.org/1999/xlink">
+  <identifier value="com.github.gortazar.lopert"/>
+  <version value="@VERSION@"/>
+  <display-name>
+    <name lang="en">lo-pert — PERT diagrams</name>
+  </display-name>
+  <publisher>
+    <name xlink:href="https://github.com/gortazar/lo-pert" lang="en">gortazar</name>
+  </publisher>
+  <extension-description>
+    <src xlink:href="description/desc_en.txt" lang="en"/>
+  </extension-description>
+  <dependencies>
+    <!-- PyUNO protocol handlers and the drawing API used here have been stable well
+         before this, but 7.0 is the oldest LibreOffice the extension is tested
+         against. It has to be stated as LibreOffice-minimal-version:
+         OpenOffice.org-minimal-version is capped at OOo 4.1, so asking for "7.0"
+         there makes every LibreOffice refuse the extension as an unsatisfied
+         dependency. -->
+    <lo:LibreOffice-minimal-version value="7.0" d:name="LibreOffice 7.0"/>
+  </dependencies>
+</description>

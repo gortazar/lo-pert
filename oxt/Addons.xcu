@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<oor:component-data xmlns:oor="http://openoffice.org/2001/registry"
+                    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                    oor:name="Addons"
+                    oor:package="org.openoffice.Office">
+  <node oor:name="AddonUI">
+    <node oor:name="OfficeMenuBar">
+      <node oor:name="com.github.gortazar.lopert" oor:op="replace">
+        <prop oor:name="Title" oor:type="xs:string">
+          <value/>
+          <value xml:lang="en-US">PERT</value>
+          <value xml:lang="es">PERT</value>
+        </prop>
+        <prop oor:name="Target" oor:type="xs:string">
+          <value>_self</value>
+        </prop>
+        <!-- Draw and Impress draw the diagram; Calc is where the precedence table
+             lives, so the generate command has to be reachable from there too. -->
+        <prop oor:name="Context" oor:type="xs:string">
+          <value>com.sun.star.drawing.DrawingDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+        </prop>
+        <node oor:name="Submenu">
+          <node oor:name="m01" oor:op="replace">
+            <prop oor:name="URL" oor:type="xs:string">
+              <value>vnd.gortazar.lopert:GenerateDiagram</value>
+            </prop>
+            <prop oor:name="Title" oor:type="xs:string">
+              <value/>
+              <value xml:lang="en-US">Diagram from Precedence Table...</value>
+              <value xml:lang="es">Diagrama desde tabla de precedencias...</value>
+            </prop>
+            <prop oor:name="Target" oor:type="xs:string">
+              <value>_self</value>
+            </prop>
+          </node>
+          <node oor:name="m02" oor:op="replace">
+            <prop oor:name="URL" oor:type="xs:string">
+              <value>private:separator</value>
+            </prop>
+          </node>
+          <node oor:name="m03" oor:op="replace">
+            <prop oor:name="URL" oor:type="xs:string">
+              <value>vnd.gortazar.lopert:InsertState</value>
+            </prop>
+            <prop oor:name="Title" oor:type="xs:string">
+              <value/>
+              <value xml:lang="en-US">Insert State</value>
+              <value xml:lang="es">Insertar estado</value>
+            </prop>
+            <prop oor:name="Target" oor:type="xs:string">
+              <value>_self</value>
+            </prop>
+            <prop oor:name="Context" oor:type="xs:string">
+              <value>com.sun.star.drawing.DrawingDocument,com.sun.star.presentation.PresentationDocument</value>
+            </prop>
+          </node>
+          <node oor:name="m04" oor:op="replace">
+            <prop oor:name="URL" oor:type="xs:string">
+              <value>vnd.gortazar.lopert:InsertAction</value>
+            </prop>
+            <prop oor:name="Title" oor:type="xs:string">
+              <value/>
+              <value xml:lang="en-US">Insert Action Between Two States</value>
+              <value xml:lang="es">Insertar acción entre dos estados</value>
+            </prop>
+            <prop oor:name="Target" oor:type="xs:string">
+              <value>_self</value>
+            </prop>
+            <prop oor:name="Context" oor:type="xs:string">
+              <value>com.sun.star.drawing.DrawingDocument,com.sun.star.presentation.PresentationDocument</value>
+            </prop>
+          </node>
+          <node oor:name="m05" oor:op="replace">
+            <prop oor:name="URL" oor:type="xs:string">
+              <value>private:separator</value>
+            </prop>
+          </node>
+          <node oor:name="m06" oor:op="replace">
+            <prop oor:name="URL" oor:type="xs:string">
+              <value>vnd.gortazar.lopert:About</value>
+            </prop>
+            <prop oor:name="Title" oor:type="xs:string">
+              <value/>
+              <value xml:lang="en-US">About lo-pert</value>
+              <value xml:lang="es">Acerca de lo-pert</value>
+            </prop>
+            <prop oor:name="Target" oor:type="xs:string">
+              <value>_self</value>
+            </prop>
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+</oor:component-data>

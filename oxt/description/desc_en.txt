@@ -1,0 +1,7 @@
+Draws classic PERT (activity-on-arrow) networks in LibreOffice Draw and Impress:
+states as three-region circles carrying the early time, the late time and the event
+number, actions as labelled connectors between them.
+
+Give it a precedence table in Calc — activity, duration, immediate predecessors — and
+it builds the network, inserts the dummy activities precedence requires, computes
+every event's early and late times, marks the critical path and lays the diagram out.
