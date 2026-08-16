@@ -32,9 +32,12 @@ def make_shape(doc, service):
     return doc.createInstance(f"com.sun.star.drawing.{service}")
 
 
-def state_group(doc, page, x, y, size=2500):
+def state_group(ctx, doc, page, x, y, size=2500):
     """A three-region event circle, grouped."""
-    shapes = doc.createInstance("com.sun.star.drawing.ShapeCollection")
+    # ShapeCollection comes from the service manager, not the document.
+    shapes = ctx.ServiceManager.createInstanceWithContext(
+        "com.sun.star.drawing.ShapeCollection", ctx
+    )
 
     circle = make_shape(doc, "EllipseShape")
     circle.setPosition(Point(x, y))
@@ -80,8 +83,8 @@ def main():
     )
     page = doc.getDrawPages().getByIndex(0)
 
-    a = state_group(doc, page, 2000, 5000)
-    b = state_group(doc, page, 12000, 5000)
+    a = state_group(ctx, doc, page, 2000, 5000)
+    b = state_group(ctx, doc, page, 12000, 5000)
     print("groups:", a.getShapeType(), b.getShapeType())
 
     connector = make_shape(doc, "ConnectorShape")

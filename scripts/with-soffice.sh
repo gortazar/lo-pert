@@ -39,14 +39,18 @@ if [ -z "$profile" ]; then
 fi
 mkdir -p "$profile"
 
-export PYTHONPATH="$program${PYTHONPATH:+:$PYTHONPATH}"
-export LD_LIBRARY_PATH="$program${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-export URE_BOOTSTRAP="vnd.sun.star.pathname:$program/fundamentalrc"
 export LO_PERT_PORT="$port"
 export LO_PERT_PROFILE="$profile"
 
+# soffice is started *before* URE_BOOTSTRAP is exported. The office bootstraps
+# itself from sofficerc; inheriting the fundamentalrc value the python client needs
+# makes it abort during startup with a NoSuchElementException, having deleted part
+# of the profile it was given.
+#
+# Deliberately only these switches too: adding --invisible --nodefault --nolockcheck
+# is another way to hit that same abort before it ever listens on the socket.
 "$soffice_bin" \
-    --headless --invisible --norestore --nologo --nodefault --nolockcheck \
+    --headless --norestore --nologo \
     "-env:UserInstallation=file://$profile" \
     "--accept=socket,host=127.0.0.1,port=$port;urp;StarOffice.ServiceManager" &
 soffice_pid=$!
@@ -59,6 +63,12 @@ shutdown() {
     exit "$status"
 }
 trap shutdown EXIT INT TERM
+
+# Now the client environment: program/ holds uno.py and pyuno.so, and pyuno needs
+# fundamentalrc to find the type registry.
+export PYTHONPATH="$program${PYTHONPATH:+:$PYTHONPATH}"
+export LD_LIBRARY_PATH="$program${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export URE_BOOTSTRAP="vnd.sun.star.pathname:$program/fundamentalrc"
 
 # soffice reports readiness only by accepting on the socket, so poll it.
 for _ in $(seq 1 120); do
