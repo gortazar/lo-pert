@@ -117,10 +117,6 @@ def main():
     )
     print("wrote", target)
 
-    calc.storeToURL(f"file://{SHOTS / 'precedence-table.png'}", properties(
-        FilterName="calc_png_Export",
-    ))
-
     drawing.close(False)
     calc.close(False)
     return 0

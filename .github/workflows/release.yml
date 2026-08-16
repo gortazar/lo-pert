@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The tag and the VERSION file are the same fact written twice; if they
+      # disagree, the extension manager would report a version nobody released.
+      - name: Check the tag matches VERSION
+        run: |
+          version="$(tr -d '\n' < VERSION)"
+          tag="${GITHUB_REF_NAME#v}"
+          [ "$version" = "$tag" ] || {
+            echo "tag $GITHUB_REF_NAME does not match VERSION ($version)" >&2
+            exit 1
+          }
+
+      # No nix here on purpose: building the .oxt needs bash, sed and zip, and a
+      # release should not be able to fail on a flake evaluation.
+      - name: Build the extension
+        run: ./build.sh "$PWD/dist"
+
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum *.oxt > SHA256SUMS
+
+      # install.sh downloads exactly these two assets, so the release is only
+      # useful if both are attached.
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "lo-pert $GITHUB_REF_NAME" \
+            --notes "Install with:
+
+          \`\`\`sh
+          curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/main/install.sh | sh
+          \`\`\`
+
+          Or download the .oxt below and add it in Tools > Extension Manager." \
+            dist/*.oxt dist/SHA256SUMS
