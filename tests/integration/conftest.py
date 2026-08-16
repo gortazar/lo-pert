@@ -67,8 +67,10 @@ def _office_environment(extra):
 def oxt(tmp_path_factory):
     """The extension, built from the working tree."""
     out = tmp_path_factory.mktemp("dist")
+    # Invoked through bash rather than by its shebang: the nix build sandbox these
+    # tests can also run in has no /usr/bin/env for it to resolve.
     result = subprocess.run(
-        [str(ROOT / "build.sh"), str(out)],
+        ["bash", str(ROOT / "build.sh"), str(out)],
         check=True,
         capture_output=True,
         text=True,

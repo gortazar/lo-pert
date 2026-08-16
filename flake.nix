@@ -69,6 +69,25 @@
             PYTHONPATH="$PWD/src" pytest tests/unit -q | tee "$out"
           '';
 
+          # The tests that install the built .oxt into a throwaway profile and drive
+          # the menu commands over the UNO bridge. They run inside the build sandbox:
+          # LibreOffice needs a writable HOME, and the bridge only ever talks to
+          # 127.0.0.1, which the sandbox's own loopback provides.
+          headless = pkgs.runCommand "lo-pert-headless-tests"
+            {
+              src = ./.;
+              # zip because the tests build the .oxt they install, and coreutils
+              # for build.sh; the sandbox has nothing on PATH that is not here.
+              nativeBuildInputs = [ python pkgs.libreoffice pkgs.bash pkgs.zip ];
+            } ''
+            cp -r "$src" ./source
+            chmod -R u+w ./source
+            cd ./source
+            export HOME="$TMPDIR/home"
+            mkdir -p "$HOME"
+            pytest tests/integration -q | tee "$out"
+          '';
+
           # A build that produces an .oxt missing a manifest entry installs fine and
           # contributes no menu, so check the archive's contents here rather than
           # discovering it by hand after a release.

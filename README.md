@@ -106,6 +106,7 @@ stated precedences — never one constraint more, never one less.
 ## Development
 
 ```sh
+nix flake check       # everything: unit tests, headless tests, packaging
 nix develop           # LibreOffice, python with pytest and hypothesis
 pytest tests/unit     # the pure core: table, network, times, layout
 pytest tests/integration   # headless LibreOffice with the built .oxt installed

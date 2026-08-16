@@ -6,29 +6,18 @@ on:
   pull_request:
 
 jobs:
-  core:
-    name: core tests and packaging
+  check:
+    name: nix flake check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: cachix/install-nix-action@v27
         with:
           extra_nix_config: "experimental-features = nix-command flakes"
-      # Unit tests (including the hypothesis properties) and a check that the built
-      # .oxt actually contains the files an extension needs. Neither pulls
-      # LibreOffice in, so this job is fast and gates every push.
+      # All three checks: the pure core's unit tests (hypothesis properties
+      # included), the headless tests that install the built .oxt into a throwaway
+      # profile and drive the menu commands over the UNO bridge, and an assertion
+      # that the packaged archive contains what an extension needs. The middle one
+      # is the only thing that catches a manifest or Addons.xcu mistake, which
+      # otherwise produces an extension that installs and contributes no menu.
       - run: nix flake check --print-build-logs
-
-  headless:
-    name: headless LibreOffice
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v27
-        with:
-          extra_nix_config: "experimental-features = nix-command flakes"
-      # Installs the built .oxt with unopkg into a throwaway profile, drives the
-      # menu commands over the UNO bridge and reads the drawn page back. Slower —
-      # the dev shell brings in LibreOffice — and worth it: a manifest mistake is
-      # invisible to every other check here.
-      - run: nix develop --command pytest tests/integration -q

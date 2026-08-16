@@ -190,3 +190,30 @@ def test_generate_without_a_spreadsheet_says_so(office, draw_document):
     assert len(dialogs) == 1
     assert dialogs[0][0] == "errorbox"
     assert "Calc" in dialogs[0][2]
+
+
+def test_generate_draws_into_an_open_impress_document(office, calc_with_table):
+    # Impress is a supported target, not just Draw: same drawing API, and the menu
+    # is contributed to both. With a presentation open, the diagram belongs on its
+    # slide rather than in a Draw document nobody asked for.
+    presentation = office.new_document("simpress")
+    try:
+        office.dispatch(calc_with_table, "GenerateDiagram")
+
+        assert office.dialogs() == []
+        pages = presentation.getDrawPages()
+        drawn = [
+            pages.getByIndex(index)
+            for index in range(pages.getCount())
+            if named(pages.getByIndex(index), "lopert.event.")
+        ]
+        assert len(drawn) == 1, "the diagram did not land on a slide"
+        page = drawn[0]
+        assert len(named(page, "lopert.activity.")) == 6
+        # The slide keeps its own size; the diagram is scaled to fit it.
+        for shape in named(page, "lopert.event."):
+            position = shape.getPosition()
+            assert 0 <= position.X <= page.Width
+            assert 0 <= position.Y <= page.Height
+    finally:
+        presentation.close(False)
