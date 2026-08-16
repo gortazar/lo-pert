@@ -94,15 +94,19 @@ def selected_cells(spreadsheet):
 
 
 def drawing_document(ctx, frame):
-    """The document to draw in, creating a Draw document if there is none."""
+    """The document to draw in, and whether this command created it.
+
+    A document we made is ours to resize; someone else's is not.
+    """
     document = current_document(ctx, frame)
     if _supports(document, DRAW) or _supports(document, IMPRESS):
-        return document
+        return document, False
     for candidate in open_documents(ctx):
         if _supports(candidate, DRAW) or _supports(candidate, IMPRESS):
-            return candidate
-    return desktop(ctx).loadComponentFromURL(
-        "private:factory/sdraw", "_blank", 0, ()
+            return candidate, False
+    return (
+        desktop(ctx).loadComponentFromURL("private:factory/sdraw", "_blank", 0, ()),
+        True,
     )
 
 
@@ -137,4 +141,20 @@ def target_page(document):
 
 
 def page_size(page):
+    return page.Width, page.Height
+
+
+# A4 landscape in 1/100 mm: the smallest page a generated diagram gets.
+A4_LANDSCAPE = (29700, 21000)
+
+
+def resize_page(page, width, height):
+    """Grow a page to hold a diagram, in landscape, never below A4.
+
+    Only ever called on a document lo-pert created itself, because in Draw the page
+    size belongs to the whole document: resizing someone's open drawing to fit a
+    generated network would be a surprising thing to do to their other pages.
+    """
+    page.Width = max(int(width), A4_LANDSCAPE[0])
+    page.Height = max(int(height), A4_LANDSCAPE[1])
     return page.Width, page.Height

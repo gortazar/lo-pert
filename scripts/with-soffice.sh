@@ -13,7 +13,9 @@
 # afterwards (that is how the .oxt under test gets installed into it).
 set -euo pipefail
 
-port="${LO_PERT_PORT:-2002}"
+# A fixed port silently connects the client to whatever office is already listening
+# — including a stale one from an earlier run, with a different extension installed.
+port="${LO_PERT_PORT:-$(python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()')}"
 
 soffice_bin="${SOFFICE:-soffice}"
 command -v "$soffice_bin" >/dev/null || {
@@ -41,6 +43,14 @@ mkdir -p "$profile"
 
 export LO_PERT_PORT="$port"
 export LO_PERT_PROFILE="$profile"
+
+# Install the extension into that profile before the office starts — unopkg cannot
+# register into a profile an office is already using. LO_PERT_NO_EXTENSION=1 skips
+# it, which is what the spikes want.
+if [ "${LO_PERT_NO_EXTENSION:-0}" != "1" ]; then
+    oxt="$(./build.sh "$profile/build" | tail -1)"
+    unopkg add --force "-env:UserInstallation=file://$profile" "$oxt" >/dev/null
+fi
 
 # soffice is started *before* URE_BOOTSTRAP is exported. The office bootstraps
 # itself from sofficerc; inheriting the fundamentalrc value the python client needs

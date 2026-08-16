@@ -63,9 +63,18 @@ def generate_diagram(ctx, frame):
             + "\n".join(str(problem) for problem in error.errors),
         ) from error
 
-    document = documents.drawing_document(ctx, frame)
+    document, created = documents.drawing_document(ctx, frame)
     page = documents.target_page(document)
-    width, height = documents.page_size(page)
+    if created:
+        # Our own new document: give it a page the diagram fits on at full size,
+        # rather than shrinking a wide network onto a portrait A4.
+        width, height = documents.resize_page(
+            page,
+            diagram.width + 2 * diagram.placement.style.margin,
+            diagram.height + 2 * diagram.placement.style.margin,
+        )
+    else:
+        width, height = documents.page_size(page)
     scale = fit_scale(diagram.width, diagram.height, width, height)
     offset = (
         (width - diagram.width * scale) / 2,
