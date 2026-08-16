@@ -1,0 +1,7 @@
+dist/
+__pycache__/
+*.pyc
+.pytest_cache/
+result
+result-*
+.hypothesis/
