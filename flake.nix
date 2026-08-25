@@ -17,7 +17,10 @@
         # interpreter and the one inside LibreOffice are the same build: `import uno`
         # then works from the dev shell with nothing more than PYTHONPATH pointing at
         # program/ (scripts/with-soffice.sh does that).
-        python = pkgs.python3.withPackages (ps: [ ps.pytest ps.hypothesis ]);
+        # pytest-cov is used only by the coverage job in ci.yml: `nix flake check` does not
+        # measure coverage, because a report is an artefact that has to leave the sandbox
+        # and a check keeps nothing but its own success.
+        python = pkgs.python3.withPackages (ps: [ ps.pytest ps.hypothesis ps.pytest-cov ]);
 
         # `nix build` — the installable extension.
         oxt = pkgs.runCommand "lo-pert-${version}.oxt"

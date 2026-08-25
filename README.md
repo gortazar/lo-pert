@@ -1,5 +1,7 @@
 # lo-pert
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=gortazar_lo-pert&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=gortazar_lo-pert)
+
 PERT diagrams in LibreOffice: give it a precedence table in Calc and it draws the
 classic **activity-on-arrow** network — events as three-region circles, activities as
 labelled arrows — computes every event's early and late times, inserts the dummy

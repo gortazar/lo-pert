@@ -21,3 +21,35 @@ jobs:
       # is the only thing that catches a manifest or Addons.xcu mistake, which
       # otherwise produces an extension that installs and contributes no menu.
       - run: nix flake check --print-build-logs
+
+  # Separate from `check` on purpose: `nix flake check` runs the suite hermetically and
+  # keeps nothing, and a coverage report is an artefact that has to leave the sandbox.
+  # The unit suite only — tests/integration runs the code inside soffice's own
+  # interpreter, where coverage cannot see it.
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: "experimental-features = nix-command flakes"
+      - run: |
+          nix develop --command env PYTHONPATH="$PWD/src" \
+            pytest tests/unit -q --cov=src/lopert --cov-report=xml:coverage.xml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.xml
+          if-no-files-found: error
+          retention-days: 1
+
+  # The SonarQube Cloud quality gate. A job of its own, beside `check` rather than inside
+  # it, so a red gate can never be mistaken for a failing test suite — and because the gate
+  # is advisory: it reports, it does not block.
+  sonar:
+    needs: coverage
+    uses: gortazar/aideas/.github/workflows/sonar.yml@v1
+    with:
+      coverage-artifact: coverage
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
